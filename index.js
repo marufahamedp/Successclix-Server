@@ -56,15 +56,9 @@ async function run() {
         app.get('/users', async (req, res) => {
             const cursor = usersCollection.find({});
             const users = await cursor.toArray();
-            const newusers ={
-                users:users,
-                details:os.cpus()
-            }
-            res.send(newusers);
+            res.send(users);
         });
        
-        console.log();
-
         //get user by email
         app.get('/users', async (req, res) => {
             const email = req.query.email;
@@ -90,6 +84,9 @@ async function run() {
 
             res.json({ admin: isAdmin });
         })
+
+        
+
 
         // app.get('/users/id', async (req, res) => {
         //     const id = req.params.id;
