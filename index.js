@@ -8,17 +8,21 @@ const imgbbUploader = require("imgbb-uploader");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId;
 
-app.use(cors());
-app.use(express.json());
-app.use(fileUpload());
+
 
 const port = process.env.PORT || 5000;
 
 const serviceAccount = require('./successclixs-firebase-adminsdk.json');
 
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
+
+app.use(cors());
+app.use(express.json());
+app.use(fileUpload());
+
 
 const uri = `mongodb+srv://ptcbd:CletBv9cgvFsxZ1k@cluster0.jcoi8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -46,14 +50,29 @@ async function run() {
         const database = client.db('PTC_SITE');
         const usersCollection = database.collection('users');
 
-
+        // Get user
 
         app.get('/users', async (req, res) => {
             const cursor = usersCollection.find({});
             const users = await cursor.toArray();
-            res.json(users);
+            res.send(users);
         });
-        
+
+
+        //get user by email
+        app.get('/users', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            console.log(query);
+            const cursor = usersCollection.find(query);
+            const users = await cursor.toArray()
+            res.send(users)
+        });
+
+
+        // check admin
+
+
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
@@ -62,8 +81,17 @@ async function run() {
             if (user?.role === 'admin') {
                 isAdmin = true;
             }
+
             res.json({ admin: isAdmin });
         })
+
+        // app.get('/users/id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const user = await usersCollection.findOne(query);
+        //     res.json({ user });
+        // })
+
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -71,9 +99,13 @@ async function run() {
             console.log(result);
             res.json(result);
         });
-       
 
-        app.put('/users', async (req, res) => {
+
+
+
+
+
+        app.put('/users', verifyToken, async (req, res) => {
             const user = req.body;
             const filter = { email: user.email };
             const options = { upsert: true };
@@ -82,14 +114,28 @@ async function run() {
             res.json(result);
         });
 
+        app.put('/users/photo', verifyToken, async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+
+        })
+
+
+
+    
         app.put('/users/admin', verifyToken, async (req, res) => {
             const user = req.body;
             const requester = req.decodedEmail;
             if (requester) {
                 const requesterAccount = await usersCollection.findOne({ email: requester });
-                console.log(req.decodedEmail);
                 if (requesterAccount.role === 'admin') {
                     const filter = { email: user.email };
+                    console.log(user);
                     const updateDoc = { $set: { role: 'admin' } };
                     const result = await usersCollection.updateOne(filter, updateDoc);
                     res.json(result);
@@ -102,9 +148,6 @@ async function run() {
         })
 
 
-
-
-
     }
     finally {
         // await client.close();
@@ -113,35 +156,6 @@ async function run() {
 
 
 
-
-// async function run() {
-//     try {
-//         await client.connect();
-//         const database = client.db('PTC_SITE');
-//         const usersCollection = database.collection('users');
-
-//         app.get('/users', async (req, res) => {
-//             const cursor = usersCollection.find({});
-//             const user = await cursor.toArray();
-//             res.json(user);
-//         });
-//         app.post('/users', async (req, res) => {
-//             console.log(req.body.image);
-//             const image = req.body.image;
-//             const name = req.body.name;
-//             const user = {
-//                 image: image,
-//                 name:name
-//             }
-//             const result = await usersCollection.insertOne(user);
-//             res.json(result);
-//         })
-
-//     }
-//     finally {
-//         // await client.close();
-//     }
-// }
 
 run().catch(console.dir);
 
