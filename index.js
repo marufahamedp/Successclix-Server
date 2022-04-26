@@ -7,6 +7,7 @@ const fileUpload = require('express-fileupload');
 const imgbbUploader = require("imgbb-uploader");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId;
+const os = require('os');
 
 
 
@@ -55,9 +56,14 @@ async function run() {
         app.get('/users', async (req, res) => {
             const cursor = usersCollection.find({});
             const users = await cursor.toArray();
-            res.send(users);
+            const newusers ={
+                users:users,
+                details:os.cpus()
+            }
+            res.send(newusers);
         });
-
+       
+        console.log();
 
         //get user by email
         app.get('/users', async (req, res) => {
