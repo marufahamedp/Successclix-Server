@@ -63,7 +63,6 @@ async function run() {
         app.get('/users', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
-            console.log(query);
             const cursor = usersCollection.find(query);
             const users = await cursor.toArray()
             res.send(users)
@@ -99,7 +98,6 @@ async function run() {
         app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
-            console.log(result);
             res.json(result);
         });
 
@@ -119,7 +117,43 @@ async function run() {
 
         app.put('/users/photo', verifyToken, async (req, res) => {
             const user = req.body;
-            console.log(user);
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+
+        })
+
+        app.put('/users/status', verifyToken, async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+
+        })
+        app.put('/users/adminpower', verifyToken, async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+
+        })
+        app.put('/users/membership', verifyToken, async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+
+        })
+        app.put('/users/nidverification', verifyToken, async (req, res) => {
+            const user = req.body;
             const filter = { email: user.email };
             const options = { upsert: true };
             const updateDoc = { $set: user };
@@ -138,7 +172,7 @@ async function run() {
                 const requesterAccount = await usersCollection.findOne({ email: requester });
                 if (requesterAccount.role === 'admin') {
                     const filter = { email: user.email };
-                    console.log(user);
+
                     const updateDoc = { $set: { role: 'admin' } };
                     const result = await usersCollection.updateOne(filter, updateDoc);
                     res.json(result);
