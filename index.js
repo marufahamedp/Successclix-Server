@@ -24,6 +24,11 @@ app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jcoi8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+
 
 async function verifyToken(req, res, next) {
     if (req.headers?.authorization?.startsWith('Bearer ')) {
@@ -54,7 +59,7 @@ async function run() {
             const users = await cursor.toArray();
             res.send(users);
         });
-       
+
         //get user by email
         app.get('/users', async (req, res) => {
             const email = req.query.email;
@@ -80,7 +85,7 @@ async function run() {
             res.json({ admin: isAdmin });
         })
 
-        
+
 
 
         // app.get('/users/id', async (req, res) => {
@@ -160,7 +165,7 @@ async function run() {
 
 
 
-    
+
         app.put('/users/admin', verifyToken, async (req, res) => {
             const user = req.body;
             const requester = req.decodedEmail;
