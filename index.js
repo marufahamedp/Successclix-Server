@@ -25,10 +25,6 @@ app.use(express.json());
 app.use(fileUpload());
 
 
-const uri = `mongodb+srv://ptcbd:CletBv9cgvFsxZ1k@cluster0.jcoi8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-
-
 async function verifyToken(req, res, next) {
     if (req.headers?.authorization?.startsWith('Bearer ')) {
         const token = req.headers.authorization.split(' ')[1];
