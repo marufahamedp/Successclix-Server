@@ -8,6 +8,7 @@ const imgbbUploader = require("imgbb-uploader");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId;
 const os = require('os');
+const morgan = require('morgan')
 
 
 
@@ -23,6 +24,7 @@ admin.initializeApp({
 app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
+app.use(morgan('combined'))
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jcoi8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
@@ -51,6 +53,8 @@ async function run() {
         await client.connect();
         const database = client.db('PTC_SITE');
         const usersCollection = database.collection('users');
+        const userlogsCollection = database.collection('userlogs');
+
 
         // Get user
 
@@ -59,6 +63,29 @@ async function run() {
             const users = await cursor.toArray();
             res.send(users);
         });
+        // Get userlogs
+
+        app.get('/userlogs', async (req, res) => {
+            const cursor = userlogsCollection.find({});
+            const userlogs = await cursor.toArray();
+            res.send(userlogs);
+        });
+
+        app.post('/userlogs', async (req, res) => {
+            const userlogs = req.body;
+            const result = await userlogsCollection.insertOne(userlogs);
+            res.json(result);
+        });
+
+
+
+
+        // Get user
+        app.get('/', async (req, res) => {
+            res.send('okay');
+            console.log(res);
+        });
+
 
         //get user by email
         app.get('/users', async (req, res) => {
