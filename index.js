@@ -5,12 +5,15 @@ const admin = require("firebase-admin");
 require('dotenv').config();
 const fileUpload = require('express-fileupload');
 const imgbbUploader = require("imgbb-uploader");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectID } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId;
 const os = require('os');
 const morgan = require('morgan')
+const SSLCommerzPayment = require('sslcommerz')
 
-
+const store_id = 'succe627a08591e3cd'
+const store_passwd = 'succe627a08591e3cd@ssl'
+const is_live = false //true for live, false for sandbox
 
 const port = process.env.PORT || 5000;
 
@@ -54,6 +57,75 @@ async function run() {
         const database = client.db('PTC_SITE');
         const usersCollection = database.collection('users');
         const userlogsCollection = database.collection('userlogs');
+        const initiatepaymentCollection = database.collection('initiatepayment');
+        const serviceCollection = database.collection('service');
+        const subscribersCollection = database.collection('subscribers');
+        const  getpaymentCollection = database.collection('getpayment');
+
+
+           //get team members
+           app.get('/getpayment', async (req, res) => {
+            const cursor = getpaymentCollection.find({});
+            const getpayment = await cursor.toArray()
+            res.send(getpayment)
+        });
+
+        // post team members
+        app.post('/getpayment', async (req, res) => {
+            const getpayment = req.body;
+            const result = await getpaymentCollection.insertOne(getpayment);
+            res.json(result);
+        })
+
+
+ 
+
+           //get team members
+           app.get('/subscribers', async (req, res) => {
+            const cursor = subscribersCollection.find({});
+            const subscribers = await cursor.toArray()
+            res.send(subscribers)
+        });
+
+        // post team members
+        app.post('/subscribers', async (req, res) => {
+            const subscribers = req.body;
+            const result = await subscribersCollection.insertOne(subscribers);
+            res.json(result);
+        })
+
+
+        //get team members
+        app.get('/services', async (req, res) => {
+            const cursor = serviceCollection.find({});
+            const teammember = await cursor.toArray()
+            res.send(teammember)
+        });
+
+        // post team members
+        app.post('/services', async (req, res) => {
+            const service = req.body;
+            const result = await serviceCollection.insertOne(service);
+            res.json(result);
+        })
+
+        // get single services
+
+        app.get('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectID(id) };
+            const service = await serviceCollection.findOne(query);
+            res.json(service);
+        })
+
+        // delete single services
+        app.delete('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectID(id) };
+            const service = await serviceCollection.deleteOne(query);
+            res.json(service);
+        })
+
 
 
         // Get user
@@ -77,13 +149,19 @@ async function run() {
             res.json(result);
         });
 
-
+        // delete single services
+        app.delete('/userlogs/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const userlogs = await userlogsCollection.deleteOne(query);
+            res.json(userlogs);
+        })
 
 
         // Get user
         app.get('/', async (req, res) => {
             res.send('okay');
-            console.log(res);
+
         });
 
 
@@ -95,6 +173,54 @@ async function run() {
             const users = await cursor.toArray()
             res.send(users)
         });
+
+
+        // //sslcommerz init
+        // app.get('/init', (req, res) => {
+        //     const data = {
+        //         total_amount: 100,
+        //         currency: 'USD',
+        //         tran_id: 'REF123',
+        //         success_url: 'http://yoursite.com/success',
+        //         fail_url: 'http://yoursite.com/fail',
+        //         cancel_url: 'http://yoursite.com/cancel',
+        //         ipn_url: 'http://yoursite.com/ipn',
+        //         shipping_method: 'Courier',
+        //         product_name: 'Computer.',
+        //         product_category: 'Electronic',
+        //         product_profile: 'general',
+        //         cus_name: 'Customer Name',
+        //         cus_email: 'cust@yahoo.com',
+        //         cus_add1: 'Dhaka',
+        //         cus_add2: 'Dhaka',
+        //         cus_city: 'Dhaka',
+        //         cus_state: 'Dhaka',
+        //         cus_postcode: '1000',
+        //         cus_country: 'Bangladesh',
+        //         cus_phone: '01711111111',
+        //         cus_fax: '01711111111',
+        //         ship_name: 'Customer Name',
+        //         ship_add1: 'Dhaka',
+        //         ship_add2: 'Dhaka',
+        //         ship_city: 'Dhaka',
+        //         ship_state: 'Dhaka',
+        //         ship_postcode: 1000,
+        //         ship_country: 'Bangladesh',
+        //         multi_card_name: 'mastercard',
+        //         value_a: 'ref001_A',
+        //         value_b: 'ref002_B',
+        //         value_c: 'ref003_C',
+        //         value_d: 'ref004_D'
+        //     };
+        //     const sslcommer = new SSLCommerzPayment(process.env.STOR_ID, process.env.STOR_PASS, false) //true for live default false for sandbox
+        //     sslcommer.init(data).then(data => {
+        //         //process the response that got from sslcommerz 
+        //         //https://developer.sslcommerz.com/doc/v4/#returned-parameters
+        //         console.log(data);
+        //         res.redirect(data.GatewayPageURL)
+        //     });
+        // })
+
 
 
         // check admin
@@ -121,6 +247,13 @@ async function run() {
         //     const user = await usersCollection.findOne(query);
         //     res.json({ user });
         // })
+
+
+
+
+
+
+
 
 
         app.post('/users', async (req, res) => {
