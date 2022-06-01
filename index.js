@@ -7,13 +7,7 @@ const fileUpload = require('express-fileupload');
 const imgbbUploader = require("imgbb-uploader");
 const { MongoClient, ServerApiVersion, ObjectID } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId;
-const os = require('os');
 const morgan = require('morgan')
-const SSLCommerzPayment = require('sslcommerz')
-
-const store_id = 'succe627a08591e3cd'
-const store_passwd = 'succe627a08591e3cd@ssl'
-const is_live = false //true for live, false for sandbox
 
 const port = process.env.PORT || 5000;
 
@@ -40,7 +34,7 @@ admin.initializeApp({
 app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
-app.use(morgan('combined'))
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jcoi8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
@@ -73,11 +67,53 @@ async function run() {
         const initiatepaymentCollection = database.collection('initiatepayment');
         const serviceCollection = database.collection('service');
         const subscribersCollection = database.collection('subscribers');
-        const  getpaymentCollection = database.collection('getpayment');
+        const getpaymentCollection = database.collection('getpayment');
+        const cashCollection = database.collection('cash');
 
 
-           //get team members
-           app.get('/getpayment', async (req, res) => {
+        //get team members
+        app.get('/cash', async (req, res) => {
+            const cursor = cashCollection.find({});
+            const cash = await cursor.toArray()
+            res.send(cash)
+        });
+
+        // post team members
+        app.post('/cash', async (req, res) => {
+            const cash = req.body;
+            const result = await cashCollection.insertOne(cash);
+            res.json(result);
+        })
+        // get single teammembers
+
+        app.get('/cash/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectID(id) };
+            const cash = await cashCollection.findOne(query);
+            res.json(cash);
+        })
+
+        // delete single teammembers
+        app.delete('/cash/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectID(id) };
+            const cash = await cashCollection.deleteOne(query);
+            res.json(cash);
+        })
+
+        app.put('/cash/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const cash = req.body;
+            const filter = { _id: ObjectID(id) };
+            const options = { upsert: true };
+            const updateDoc = { $set: cash };
+            const result = await cashCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        });
+
+
+        //get team members
+        app.get('/getpayment', async (req, res) => {
             const cursor = getpaymentCollection.find({});
             const getpayment = await cursor.toArray()
             res.send(getpayment)
@@ -89,12 +125,36 @@ async function run() {
             const result = await getpaymentCollection.insertOne(getpayment);
             res.json(result);
         })
+        // get single teammembers
+
+        app.get('/getpayment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectID(id) };
+            const getpayment = await getpaymentCollection.findOne(query);
+            res.json(getpayment);
+        })
+
+        // delete single teammembers
+        app.delete('/getpayment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectID(id) };
+            const getpayment = await getpaymentCollection.deleteOne(query);
+            res.json(getpayment);
+        })
+
+        app.put('/getpayment/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const orders = req.body;
+            const filter = { _id: ObjectID(id) };
+            const options = { upsert: true };
+            const updateDoc = { $set: orders };
+            const result = await getpaymentCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        });
 
 
- 
-
-           //get team members
-           app.get('/subscribers', async (req, res) => {
+        //get team members
+        app.get('/subscribers', async (req, res) => {
             const cursor = subscribersCollection.find({});
             const subscribers = await cursor.toArray()
             res.send(subscribers)
@@ -131,6 +191,7 @@ async function run() {
             res.json(service);
         })
 
+       
         // delete single services
         app.delete('/services/:id', async (req, res) => {
             const id = req.params.id;
@@ -170,12 +231,6 @@ async function run() {
             res.json(userlogs);
         })
 
-
-        // Get user
-        app.get('/', async (req, res) => {
-            res.send('okay');
-
-        });
 
 
         //get user by email
@@ -250,6 +305,8 @@ async function run() {
 
             res.json({ admin: isAdmin });
         })
+
+    
 
 
 
