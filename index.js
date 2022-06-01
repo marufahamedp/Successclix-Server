@@ -36,6 +36,7 @@ app.use(express.json());
 app.use(fileUpload());
 
 
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jcoi8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -64,53 +65,9 @@ async function run() {
         const database = client.db('PTC_SITE');
         const usersCollection = database.collection('users');
         const userlogsCollection = database.collection('userlogs');
-        const initiatepaymentCollection = database.collection('initiatepayment');
         const serviceCollection = database.collection('service');
         const subscribersCollection = database.collection('subscribers');
         const getpaymentCollection = database.collection('getpayment');
-        const cashCollection = database.collection('cash');
-
-
-        //get team members
-        app.get('/cash', async (req, res) => {
-            const cursor = cashCollection.find({});
-            const cash = await cursor.toArray()
-            res.send(cash)
-        });
-
-        // post team members
-        app.post('/cash', async (req, res) => {
-            const cash = req.body;
-            const result = await cashCollection.insertOne(cash);
-            res.json(result);
-        })
-        // get single teammembers
-
-        app.get('/cash/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectID(id) };
-            const cash = await cashCollection.findOne(query);
-            res.json(cash);
-        })
-
-        // delete single teammembers
-        app.delete('/cash/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectID(id) };
-            const cash = await cashCollection.deleteOne(query);
-            res.json(cash);
-        })
-
-        app.put('/cash/:id', verifyToken, async (req, res) => {
-            const id = req.params.id;
-            const cash = req.body;
-            const filter = { _id: ObjectID(id) };
-            const options = { upsert: true };
-            const updateDoc = { $set: cash };
-            const result = await cashCollection.updateOne(filter, updateDoc, options);
-            res.json(result);
-        });
-
 
         //get team members
         app.get('/getpayment', async (req, res) => {
